@@ -9,7 +9,7 @@ import connectDB from "./utils/connectDB";
 import userRouter from "./routes/user.route";
 import authRouter from "./routes/auth.route";
 // import postRouter from "./routes/post.route";
-// import sessionRouter from "./routes/session.route";
+import sessionRouter from "./routes/session.route";
 
 // import nodemailer from 'nodemailer';
 // (async function () {
@@ -27,13 +27,13 @@ if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
 app.use(
   cors({
     credentials: true,
-    origin: ["http://localhost:3000"],
+    origin: ["http://localhost:1420"],
   })
 );
 
 app.use("/api/users", userRouter);
 app.use("/api/auth", authRouter);
-// app.use("/api/sessions", sessionRouter);
+app.use("/api/sessions", sessionRouter);
 // app.use("/api/posts", postRouter);
 
 app.get(

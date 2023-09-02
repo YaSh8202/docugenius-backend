@@ -20,21 +20,9 @@ import {
   signToken,
 } from "../services/user.service";
 // import AppError from "../utils/appError";
-import  redisClient  from "../utils/connectRedis";
+import redisClient from "../utils/connectRedis";
 import { signJwt, verifyJwt } from "../utils/jwt";
-
-class AppError extends Error {
-  status: string;
-  isOperational: boolean;
-
-  constructor(public message: string, public statusCode: number = 500) {
-    super(message);
-    this.status = `${statusCode}`.startsWith("4") ? "fail" : "error";
-    this.isOperational = true;
-
-    Error.captureStackTrace(this, this.constructor);
-  }
-}
+import AppError from "../utils/appError";
 
 // Exclude this fields from the response
 export const excludedFields = ["password"];
@@ -72,19 +60,21 @@ export const registerHandler = async (
       email: req.body.email,
       name: req.body.name,
       password: req.body.password,
+      verified: true,
+      verificationCode: null,
     });
 
     // const verificationCode = user.createVerificationCode();
-    user.verified = true;
-    user.verificationCode = null;
-    await user.save({ validateBeforeSave: false });
+    // user.verified = true;
+    // user.verificationCode = null;
+    // await user.save({ validateBeforeSave: false });
 
     return res.status(201).json({
       status: "success",
-      message:
-        "Account created successfully, please login to access your account",
+      data: {
+        user,
+      },
     });
-
   } catch (err: any) {
     if (err.code === 11000) {
       return res.status(409).json({
@@ -259,19 +249,22 @@ export const googleOauthHandler = async (
     // Get the code from the query
     const code = req.query.code as string;
     const pathUrl = (req.query.state as string) || "/";
-
+    console.log("code",code)
     if (!code) {
       return next(new AppError("Authorization code not provided!", 401));
     }
 
     // Use the code to get the id and access tokens
     const { id_token, access_token } = await getGoogleOauthToken({ code });
+    console.log("access_token",access_token)
 
     // Use the token to get the User
     const { name, verified_email, email, picture } = await getGoogleUser({
       id_token,
       access_token,
     });
+
+    console.log("name",name)
 
     // Check if user is verified
     if (!verified_email) {
