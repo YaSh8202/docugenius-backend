@@ -33,7 +33,7 @@ import bcrypt from "bcryptjs";
 // Export the User class to be used as TypeScript type
 export class User {
   @prop()
-  name?: string;
+  name: string;
 
   @prop()
   id: string;
@@ -46,6 +46,9 @@ export class User {
 
   @prop({ default: "user" })
   role: string;
+
+  @prop({ default: "default.png" })
+  photo: string;
 
   @prop({ default: false })
   verified: boolean;

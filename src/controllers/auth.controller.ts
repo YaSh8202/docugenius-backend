@@ -197,7 +197,7 @@ export const refreshAccessTokenHandler = async (
     }
 
     // Check if the user exist
-    const user = await findUserById(JSON.parse(session).id);
+    const user = await findUserById(JSON.parse(session)._id);
 
     if (!user) {
       return next(new AppError(message, 403));
@@ -249,22 +249,19 @@ export const googleOauthHandler = async (
     // Get the code from the query
     const code = req.query.code as string;
     const pathUrl = (req.query.state as string) || "/";
-    console.log("code",code)
+
     if (!code) {
       return next(new AppError("Authorization code not provided!", 401));
     }
 
     // Use the code to get the id and access tokens
     const { id_token, access_token } = await getGoogleOauthToken({ code });
-    console.log("access_token",access_token)
 
     // Use the token to get the User
-    const { name, verified_email, email, picture } = await getGoogleUser({
+    const {id, name, verified_email, email, picture } = await getGoogleUser({
       id_token,
       access_token,
     });
-
-    console.log("name",name)
 
     // Check if user is verified
     if (!verified_email) {
@@ -275,6 +272,7 @@ export const googleOauthHandler = async (
     const user = await findAndUpdateUser(
       { email },
       {
+        id,
         name,
         photo: picture,
         email,
