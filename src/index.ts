@@ -10,6 +10,7 @@ import userRouter from "./routes/user.route";
 import authRouter from "./routes/auth.route";
 // import postRouter from "./routes/post.route";
 import sessionRouter from "./routes/session.route";
+import docRouter from "./routes/doc.route";
 
 // import nodemailer from 'nodemailer';
 // (async function () {
@@ -34,7 +35,7 @@ app.use(
 app.use("/api/users", userRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/sessions", sessionRouter);
-// app.use("/api/posts", postRouter);
+app.use("/api/docs", docRouter);
 
 app.get(
   "/api/healthChecker",
