@@ -24,3 +24,7 @@ export const findOneAndDelete = async (
 ) => {
   return await docModel.findOneAndDelete(query, options);
 };
+
+export const findDocById = async (id: string) => {
+  return await docModel.findById(id).lean();
+};

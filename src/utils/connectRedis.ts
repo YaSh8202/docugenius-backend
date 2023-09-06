@@ -1,9 +1,10 @@
+import  config  from 'config';
 import { createClient } from 'redis';
 
 
 
 
-const redisUrl = `redis://default:19f2ed0fe6ad42c08adffbfdb6075b4c@apn1-model-halibut-34267.upstash.io:34267`;
+const redisUrl = config.get<string>('redisUrl');
 const redisClient = createClient({
   url: redisUrl,
 });

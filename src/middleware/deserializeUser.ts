@@ -21,7 +21,6 @@ export const deserializeUser = async (
       access_token = req.cookies.access_token;
     }
 
-    console.log("access_token", access_token);
 
     if (!access_token) {
       return next(new AppError("You are not logged in", 401));
@@ -33,7 +32,7 @@ export const deserializeUser = async (
       "accessTokenPublicKey"
     );
 
-    console.log("decoded", decoded);
+    // console.log("decoded", decoded);
 
     if (!decoded) {
       return next(new AppError(`Invalid token or user doesn't exist`, 401));
@@ -41,7 +40,7 @@ export const deserializeUser = async (
 
     // Check if user has a valid session
     const session = await redisClient.get(decoded.sub);
-    console.log("session",session)
+    // console.log("session",session)
 
     if (!session) {
       return next(new AppError(`User session has expired`, 401));

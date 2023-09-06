@@ -21,15 +21,24 @@ const params = {
   }),
 };
 
-
 export const deleteDocSchema = object({
-    ...params,
+  ...params,
 });
 
 export const getDocSchema = object({
-    ...params,
+  ...params,
+});
+
+export const queryDocSchema = object({
+  ...params,
+  body: object({
+    query: string({
+      required_error: "Query is required",
+    }),
+  }),
 });
 
 export type GetDocSchemaType = TypeOf<typeof getDocSchema>["params"];
 export type DeleteDocSchemaType = TypeOf<typeof deleteDocSchema>["params"];
 export type CreateDocInput = TypeOf<typeof createDocSchema>["body"];
+export type QueryDocInput = TypeOf<typeof queryDocSchema>["body"];

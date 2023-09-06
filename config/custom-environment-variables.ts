@@ -14,6 +14,10 @@ export default {
   githubClientSecret: "GITHUB_OAUTH_CLIENT_SECRET",
   githubOauthRedirect: "GITHUB_OAUTH_REDIRECT_URL",
 
+  redisUrl: "REDIS_URL",
+  openaiApiKey: "OPENAI_API_KEY",
+  dbInterfaceToken: "DB_INTERFACE_BEARER_TOKEN",
+
   smtp: {
     host: "EMAIL_HOST",
     pass: "EMAIL_PASS",
