@@ -9,7 +9,7 @@ const openai = new OpenAI({
   apiKey: config.get<string>("openaiApiKey"),
 });
 
-const BACKEND_URL = "http://localhost:8000";
+const BACKEND_URL = "https://docugenius-gpt.onrender.com";
 const DB_INTERFACE_BEARER_TOKEN = config.get<string>("dbInterfaceToken");
 
 const api = axios.create({
@@ -52,9 +52,10 @@ export const downloadAndPostFile = async ({
         "Content-Type": "multipart/form-data",
       },
     });
-    console.log("uploadResponse", uploadResponse.data);
-    // console.log("File uploaded successfully.");
-    return uploadResponse.data;
+    return {
+      status: uploadResponse.status,
+      fileSize: fileContent.length, // in bytes
+    };
   } catch (error) {
     console.log(`Error: ${error} for uploading file.`);
     throw new Error("Error in uploading file");
@@ -102,8 +103,11 @@ export const queryDoc = async ({
 };
 
 const applyPromptTemplate = (question: string) => {
-  return `By considering the following information, answer the question below and make sure to give response in markdown format.:
-    Q: ${question}
+  return `By considering the following information, answer the question below.
+  Q: ${question}
+
+
+  Make sure that entire response is in markdown format.:
     `;
 };
 

@@ -25,10 +25,13 @@ export const createDocHandler = async (
     const { title, url } = req.body;
 
     const doc = await createDoc({ input: { title, url }, user_id });
-    await downloadAndPostFile({
+    const { fileSize, status } = await downloadAndPostFile({
       url,
       id: doc._id.toString(),
     });
+
+    doc.size = fileSize;
+    await doc.save();
 
     res.status(201).json({
       status: "success",
@@ -116,8 +119,6 @@ export const queryDocHandler = async (
     query,
   });
 
-  console.log("chunks_response", chunks_response);
-
   if (!chunks_response) {
     return res.status(500).json({
       status: "fail",
@@ -133,11 +134,11 @@ export const queryDocHandler = async (
       });
     });
 
-    console.log("chunks", chunks)
     const gptResponse = await callChatgptApi(query, chunks);
 
-    console.log("gpt response", res);
     const data = gptResponse.choices[0].message;
+
+    console.log("data", data);
 
     res.status(200).json({
       status: "success",

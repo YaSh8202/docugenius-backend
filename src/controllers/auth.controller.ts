@@ -325,12 +325,14 @@ export const githubOauthHandler = async (
     const { access_token } = await getGithubOathToken({ code });
 
     // Get the user with the access_token
-    const { email, avatar_url, login } = await getGithubUser({ access_token });
+    const {id, email, avatar_url, login } = await getGithubUser({ access_token });
+    console.log(id, email, avatar_url, login);
 
     // Create new user or update user if user already exist
     const user = await findAndUpdateUser(
       { email },
       {
+        id,
         email,
         photo: avatar_url,
         name: login,

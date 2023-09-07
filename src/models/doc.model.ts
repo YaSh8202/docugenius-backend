@@ -1,4 +1,10 @@
-import { Ref, getModelForClass, modelOptions, pre, prop } from "@typegoose/typegoose";
+import {
+  Ref,
+  getModelForClass,
+  modelOptions,
+  pre,
+  prop,
+} from "@typegoose/typegoose";
 import { User } from "./user.model";
 
 @pre<Doc>("save", function (next) {
@@ -8,7 +14,7 @@ import { User } from "./user.model";
 @modelOptions({
   schemaOptions: {
     timestamps: {
-      createdAt: "cerated_at",
+      createdAt: "created_at",
       updatedAt: "updated_at",
     },
   },
@@ -22,6 +28,9 @@ export class Doc {
 
   @prop({ required: true })
   url: string;
+
+  @prop()
+  size: number;
 
   @prop({ required: true, ref: () => User })
   user: Ref<User>;

@@ -51,8 +51,6 @@ export const signToken = async (user: DocumentType<User>) => {
     expiresIn: `${config.get<number>("refreshTokenExpiresIn")}m`,
   });
 
-  console.log("User: ", user)
-  console.log("access_token: ", access_token)
   
   const id = user.id ?? user._id.toString();
 
