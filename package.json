@@ -9,11 +9,9 @@
     "start": "npm run build && node build/src/index.js",
     "dev": "npx nodemon"
   },
-
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=16.0.0 <17.0.0"
   },
-
   "keywords": [],
   "author": "",
   "license": "ISC",
