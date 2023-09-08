@@ -35,6 +35,7 @@ const accessTokenCookieOptions: CookieOptions = {
   maxAge: config.get<number>("accessTokenExpiresIn") * 60 * 1000,
   httpOnly: true,
   sameSite: "lax",
+  path: "/",
 };
 
 const refreshTokenCookieOptions: CookieOptions = {
@@ -44,6 +45,7 @@ const refreshTokenCookieOptions: CookieOptions = {
   maxAge: config.get<number>("refreshTokenExpiresIn") * 60 * 1000,
   httpOnly: true,
   sameSite: "lax",
+  path: "/",
 };
 
 // Only set secure to true in production
@@ -258,7 +260,7 @@ export const googleOauthHandler = async (
     const { id_token, access_token } = await getGoogleOauthToken({ code });
 
     // Use the token to get the User
-    const {id, name, verified_email, email, picture } = await getGoogleUser({
+    const { id, name, verified_email, email, picture } = await getGoogleUser({
       id_token,
       access_token,
     });
@@ -325,7 +327,9 @@ export const githubOauthHandler = async (
     const { access_token } = await getGithubOathToken({ code });
 
     // Get the user with the access_token
-    const {id, email, avatar_url, login } = await getGithubUser({ access_token });
+    const { id, email, avatar_url, login } = await getGithubUser({
+      access_token,
+    });
     console.log(id, email, avatar_url, login);
 
     // Create new user or update user if user already exist
