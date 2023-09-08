@@ -34,8 +34,7 @@ const accessTokenCookieOptions: CookieOptions = {
   ),
   maxAge: config.get<number>("accessTokenExpiresIn") * 60 * 1000,
   httpOnly: true,
-  sameSite: "lax",
-  path: "/",
+  // sameSite: "lax",
 };
 
 const refreshTokenCookieOptions: CookieOptions = {
@@ -44,13 +43,12 @@ const refreshTokenCookieOptions: CookieOptions = {
   ),
   maxAge: config.get<number>("refreshTokenExpiresIn") * 60 * 1000,
   httpOnly: true,
-  sameSite: "lax",
-  path: "/",
+  // sameSite: "lax",
 };
 
 // Only set secure to true in production
-if (process.env.NODE_ENV === "production")
-  accessTokenCookieOptions.secure = true;
+// if (process.env.NODE_ENV === "production")
+//   accessTokenCookieOptions.secure = true;
 
 export const registerHandler = async (
   req: Request<{}, {}, CreateUserInput>,
