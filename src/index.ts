@@ -28,7 +28,7 @@ if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
 app.use(
   cors({
     credentials: true,
-    origin: ["http://localhost:1420","https://docugenius.vercel.app"],
+    origin: ["http://localhost:1420","https://docugenius.vercel.app", "https://docugenius.up.railway.app"],
     exposedHeaders: ["Set-Cookie"]
   })
 );

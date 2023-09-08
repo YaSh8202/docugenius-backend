@@ -33,8 +33,9 @@ const accessTokenCookieOptions: CookieOptions = {
     Date.now() + config.get<number>("accessTokenExpiresIn") * 60 * 1000
   ),
   maxAge: config.get<number>("accessTokenExpiresIn") * 60 * 1000,
-  httpOnly: true,
+  // httpOnly: true,
   // sameSite: "lax",
+  domain: ".railway.app",
 };
 
 const refreshTokenCookieOptions: CookieOptions = {
@@ -42,8 +43,9 @@ const refreshTokenCookieOptions: CookieOptions = {
     Date.now() + config.get<number>("refreshTokenExpiresIn") * 60 * 1000
   ),
   maxAge: config.get<number>("refreshTokenExpiresIn") * 60 * 1000,
-  httpOnly: true,
+  // httpOnly: true,
   // sameSite: "lax",
+  domain: ".railway.app",
 };
 
 // Only set secure to true in production
