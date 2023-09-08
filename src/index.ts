@@ -29,6 +29,7 @@ app.use(
   cors({
     credentials: true,
     origin: ["http://localhost:1420","https://docugenius.vercel.app"],
+    exposedHeaders: ["Set-Cookie"]
   })
 );
 
