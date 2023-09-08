@@ -18,4 +18,6 @@ export default {
   openaiApiKey: "OPENAI_API_KEY",
   dbInterfaceToken: "DB_INTERFACE_BEARER_TOKEN",
 
+  origin: "ORIGIN",
+
 };
