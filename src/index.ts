@@ -26,11 +26,7 @@ app.use(cookieParser());
 app.use("/api/static", express.static(path.join(__dirname, "../public")));
 if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
 app.use(
-  cors({
-    credentials: true,
-    origin: ["http://localhost:1420","https://docugenius.vercel.app", "https://docugenius.up.railway.app"],
-    exposedHeaders: ["Set-Cookie"]
-  })
+  cors()
 );
 
 // app.use(function (req, res, next) {
