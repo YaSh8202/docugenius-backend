@@ -33,9 +33,9 @@ const accessTokenCookieOptions: CookieOptions = {
     Date.now() + config.get<number>("accessTokenExpiresIn") * 60 * 1000
   ),
   maxAge: config.get<number>("accessTokenExpiresIn") * 60 * 1000,
-  // httpOnly: true,
-  // sameSite: "lax",
-  domain: ".railway.app",
+  httpOnly: true,
+  sameSite: "lax",
+  // domain: "localhost",
 };
 
 const refreshTokenCookieOptions: CookieOptions = {
@@ -43,9 +43,9 @@ const refreshTokenCookieOptions: CookieOptions = {
     Date.now() + config.get<number>("refreshTokenExpiresIn") * 60 * 1000
   ),
   maxAge: config.get<number>("refreshTokenExpiresIn") * 60 * 1000,
-  // httpOnly: true,
-  // sameSite: "lax",
-  domain: ".railway.app",
+  httpOnly: true,
+  sameSite: "lax",
+  // domain: "localhost",
 };
 
 // Only set secure to true in production
@@ -167,9 +167,16 @@ export const verifyEmailHandler = async (
 
 // Refresh tokens
 const logout = (res: Response) => {
-  res.cookie("access_token", "", { maxAge: 1 });
-  res.cookie("refresh_token", "", { maxAge: 1 });
-  res.cookie("logged_in", "", { maxAge: 1 });
+  res.cookie("access_token", "", { ...accessTokenCookieOptions, maxAge: 1 });
+  res.cookie("refresh_token", "", {
+    ...refreshTokenCookieOptions,
+    maxAge: 1,
+  });
+  res.cookie("logged_in", "", {
+    ...accessTokenCookieOptions,
+    httpOnly: false,
+    maxAge: 1,
+  });
 };
 
 export const refreshAccessTokenHandler = async (
@@ -234,6 +241,7 @@ export const logoutHandler = async (
 ) => {
   try {
     const user = res.locals.user;
+    console.log("user ", user);
     await redisClient.del(user.id);
     logout(res);
     res.status(200).json({ status: "success" });
