@@ -1,5 +1,5 @@
 export default {
   port: 4000,
-  accessTokenExpiresIn: 60, // 60 minutes
+  accessTokenExpiresIn: 3*60, // 3 hours
   refreshTokenExpiresIn: 10*24*60, // 10 days
 };

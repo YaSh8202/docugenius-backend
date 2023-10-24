@@ -28,24 +28,14 @@ if (process.env.NODE_ENV === "development") app.use(morgan("dev"));
 app.use(
   cors({
     credentials: true,
-    origin: ["http://localhost:1420","https://docugenius.vercel.app", "https://docugenius.up.railway.app"],
-    exposedHeaders: ["Set-Cookie"]
+    origin: [
+      "http://localhost:1420",
+      "https://docugenius.vercel.app",
+      "https://docugenius.up.railway.app",
+    ],
   })
 );
 
-// app.use(function (req, res, next) {
-//   res.header("Access-Control-Allow-Credentials", "true");
-//   res.header("Access-Control-Allow-Origin", "*");
-//   res.header(
-//     "Access-Control-Allow-Methods",
-//     "GET,PUT,POST,DELETE,UPDATE,OPTIONS"
-//   );
-//   res.header(
-//     "Access-Control-Allow-Headers",
-//     "X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept"
-//   );
-//   next();
-// });
 
 app.use("/api/users", userRouter);
 app.use("/api/auth", authRouter);
@@ -57,7 +47,7 @@ app.get(
   (req: Request, res: Response, next: NextFunction) => {
     res.status(200).json({
       status: "success",
-      message: "Welcome to CodevoWeb😂😂👈👈",
+      message: "Welcome to DocuGenius API",
     });
   }
 );

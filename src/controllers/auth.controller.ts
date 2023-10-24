@@ -34,7 +34,8 @@ const accessTokenCookieOptions: CookieOptions = {
   ),
   maxAge: config.get<number>("accessTokenExpiresIn") * 60 * 1000,
   httpOnly: true,
-  sameSite: "lax",
+  sameSite: "none",
+  secure: true,
   // domain: "localhost",
 };
 
@@ -44,7 +45,8 @@ const refreshTokenCookieOptions: CookieOptions = {
   ),
   maxAge: config.get<number>("refreshTokenExpiresIn") * 60 * 1000,
   httpOnly: true,
-  sameSite: "lax",
+  sameSite: "none",
+  secure: true,
   // domain: "localhost",
 };
 
