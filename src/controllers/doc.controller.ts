@@ -11,8 +11,8 @@ import {
 } from "../services/doc.service";
 import {
   callChatgptApi,
-  downloadAndPostFile,
   queryDoc,
+  storeDocEmbeddings,
 } from "../services/gpt.service";
 
 export const createDocHandler = async (
@@ -25,10 +25,17 @@ export const createDocHandler = async (
     const { title, url } = req.body;
 
     const doc = await createDoc({ input: { title, url }, user_id });
-    const { fileSize, status } = await downloadAndPostFile({
-      url,
-      id: doc._id.toString(),
+    const { fileSize, status } = await storeDocEmbeddings({
+      fileUrl : url,
+      docId: doc._id.toString(),
     });
+
+    if(status==="ERROR"){
+      return res.status(409).json({
+        status: "error",
+        message: "Internal Server Error"
+      })
+    }
 
     doc.size = fileSize;
     await doc.save();
@@ -114,12 +121,12 @@ export const queryDocHandler = async (
   const docId = req.params.docId;
   const { query } = req.body;
 
-  const chunks_response = await queryDoc({
+  const results = await queryDoc({
     docId,
     query,
   });
 
-  if (!chunks_response) {
+  if (!results) {
     return res.status(500).json({
       status: "fail",
       message: "Error in querying vector database",
@@ -127,14 +134,10 @@ export const queryDocHandler = async (
   }
 
   try {
-    const chunks: string[] = [];
-    chunks_response.results.forEach((result: any) => {
-      result.results.forEach((inner_result: any) => {
-        chunks.push(inner_result.text);
-      });
-    });
+    const chunks = results.map((r) => r.pageContent).join('\n\n');
 
     const gptResponse = await callChatgptApi(query, chunks);
+
 
     const data = gptResponse.choices[0].message;
 

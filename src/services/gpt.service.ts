@@ -4,6 +4,10 @@ import fs from "fs";
 import FormData from "form-data";
 import OpenAI from "openai";
 import config from "config";
+import { getPineconeClient } from "../utils/pinecone";
+import { OpenAIEmbeddings } from "langchain/embeddings/openai";
+import { PineconeStore } from "langchain/vectorstores/pinecone";
+import { PDFLoader } from "langchain/document_loaders/fs/pdf";
 
 const openai = new OpenAI({
   apiKey: config.get<string>("openaiApiKey"),
@@ -20,52 +24,45 @@ const api = axios.create({
   },
 });
 
-export const downloadAndPostFile = async ({
-  url: fileUrl,
-  id: docId,
+export const storeDocEmbeddings = async ({
+  fileUrl,
+  docId,
 }: {
-  url: string;
-  id: string;
+  fileUrl: string;
+  docId: string;
 }) => {
-  const response = await axios.get(fileUrl, {
-    responseType: "arraybuffer",
-  });
-  const tempFilePath: string = path.join(__dirname, "temp.pdf");
-  fs.writeFileSync(tempFilePath, response.data);
-  const fileContent = fs.readFileSync(tempFilePath);
-  const formData = new FormData();
-  //   formData.append("file", new Blob([fileContent]), "temp.pdf");
-
-  formData.append("file", fileContent, {
-    filename: "temp.pdf",
-    contentType: "application/pdf",
-  });
-
-  formData.append(
-    "metadata",
-    JSON.stringify({ source_id: docId, url: fileUrl })
-  );
-
   try {
-    const uploadResponse = await api.post("/upsert-file", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+    const response = await fetch(fileUrl);
+    const blob = await response.blob();
+
+    const loader = new PDFLoader(blob);
+    const pageLevelDocs = await loader.load();
+
+    const pinecone = await getPineconeClient();
+    const pineconeIndex = pinecone.Index("gpt-pdf-ai");
+    const embeddings = new OpenAIEmbeddings({
+      openAIApiKey: process.env.OPENAI_API_KEY!,
     });
+
+    await PineconeStore.fromDocuments(pageLevelDocs, embeddings, {
+      pineconeIndex,
+      namespace: docId,
+    });
+
     return {
-      status: uploadResponse.status,
-      fileSize: fileContent.length, // in bytes
+      fileSize: blob.size,
+      status: "SUCCESS",
     };
-  } catch (error) {
-    console.log(`Error: ${error} for uploading file.`);
-    throw new Error("Error in uploading file");
-  } finally {
-    fs.unlinkSync(tempFilePath);
+  } catch (err) {
+    return {
+      status: "ERROR",
+      fileSize: 0,
+    };
   }
 };
 
 export const queryDoc = async ({
-  query,
+  query: message,
   docId,
 }: {
   query: string;
@@ -73,67 +70,57 @@ export const queryDoc = async ({
 }) => {
   // Query vector databases to retrieven chunk with user's input question
 
-  const body = {
-    queries: [
-      {
-        query: query,
-        top_k: 3,
-        filter: {
-          source_id: docId,
-        },
-      },
-    ],
-  };
-
   try {
-    const res = await api.post("/query", body, {
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
+    const embeddings = new OpenAIEmbeddings({
+      openAIApiKey: process.env.OPENAI_API_KEY,
+    });
+    const pinecone = await getPineconeClient();
+    const pineconeIndex = pinecone.Index("gpt-pdf-ai");
+
+    const vectorStore = await PineconeStore.fromExistingIndex(embeddings, {
+      pineconeIndex,
+      namespace: docId,
     });
 
-    if (res.status === 200) {
-      return res.data;
-    }
+    const results = await vectorStore.similaritySearch(message, 4);
+
+
+    return results;
   } catch (err) {
     console.log("Error in querying vector database", err);
     return null;
   }
 };
 
-const applyPromptTemplate = (question: string) => {
-  return `By considering the following information, answer the question below.
-  Q: ${question}
+const applyPromptTemplate = (question: string, context: string) => {
+  return `Use the following pieces of context (delimtited in triple quotes) to answer the users question in markdown format. \nIf you don't know the answer, just say that you don't know, don't try to make up an answer.
 
+  CONTEXT: """
+  ${context}
+  """
 
-  Make sure that entire response is in markdown format.:
+  Q: """
+  ${question}
+  """
     `;
 };
 
 export async function callChatgptApi(
   userQuestion: string,
-  chunks: string[]
+  context: string
 ): Promise<any> {
-  const messages = chunks.map(
-    (chunk) =>
-      ({
-        role: "user",
-        content: chunk,
-      } satisfies {
-        role: "user";
-        content: string;
-      })
-  );
+  const question = applyPromptTemplate(userQuestion, context);
 
-  const question = applyPromptTemplate(userQuestion);
-  messages.push({ role: "user", content: question });
+  const messages: {
+    role: "user" | "system";
+    content: string;
+  }[] = [{ role: "user", content: question }];
 
   const response = await openai.chat.completions.create({
     model: "gpt-3.5-turbo",
-    messages,
     max_tokens: 1024,
     temperature: 0.7,
+    messages: messages,
   });
 
   return response;
