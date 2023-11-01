@@ -13,16 +13,6 @@ const openai = new OpenAI({
   apiKey: config.get<string>("openaiApiKey"),
 });
 
-const BACKEND_URL = "https://docugenius-gpt.onrender.com";
-const DB_INTERFACE_BEARER_TOKEN = config.get<string>("dbInterfaceToken");
-
-const api = axios.create({
-  baseURL: BACKEND_URL,
-  headers: {
-    // "Content-Type": "multipart/form-data",
-    Authorization: `Bearer ${DB_INTERFACE_BEARER_TOKEN}`,
-  },
-});
 
 export const storeDocEmbeddings = async ({
   fileUrl,
