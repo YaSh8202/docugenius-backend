@@ -29,7 +29,8 @@ export const storeDocEmbeddings = async ({
     const pageLevelDocs = await loader.load();
 
     const pinecone = await getPineconeClient();
-    const pineconeIndex = pinecone.Index("gpt-pdf-ai");
+    const index = process.env.PINECONE_INDEX || "gpt-pdf-ai-index";
+    const pineconeIndex = pinecone.Index(index);
     const embeddings = new OpenAIEmbeddings({
       openAIApiKey: process.env.OPENAI_API_KEY!,
     });
@@ -65,7 +66,8 @@ export const queryDoc = async ({
       openAIApiKey: process.env.OPENAI_API_KEY,
     });
     const pinecone = await getPineconeClient();
-    const pineconeIndex = pinecone.Index("gpt-pdf-ai");
+    const index = process.env.PINECONE_INDEX || "gpt-pdf-ai-index";
+    const pineconeIndex = pinecone.Index(index);
 
     const vectorStore = await PineconeStore.fromExistingIndex(embeddings, {
       pineconeIndex,
