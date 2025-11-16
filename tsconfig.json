@@ -10,6 +10,8 @@
     "strictPropertyInitialization": false,
     "skipLibCheck": true,
     "rootDir": "./",
-    "outDir": "./build",
-  }
+    "outDir": "./build"
+  },
+  "include": ["src/**/*", "config/**/*", "api/**/*"],
+  "exclude": ["node_modules", "build"]
 }
