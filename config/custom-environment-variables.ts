@@ -16,6 +16,7 @@ export default {
 
   redisUrl: "REDIS_URL",
   openaiApiKey: "OPENAI_API_KEY",
+  openaiApiBaseUrl: "OPENAI_API_BASE_URL",
   dbInterfaceToken: "DB_INTERFACE_BEARER_TOKEN",
 
   origin: "ORIGIN",

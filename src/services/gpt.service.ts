@@ -5,14 +5,12 @@ import FormData from "form-data";
 import OpenAI from "openai";
 import config from "config";
 import { getPineconeClient } from "../utils/pinecone";
-import { OpenAIEmbeddings } from "langchain/embeddings/openai";
-import { PineconeStore } from "langchain/vectorstores/pinecone";
 import { PDFLoader } from "langchain/document_loaders/fs/pdf";
 
 const openai = new OpenAI({
   apiKey: config.get<string>("openaiApiKey"),
+  baseURL: config.get<string>("openaiApiBaseUrl") || undefined,
 });
-
 
 export const storeDocEmbeddings = async ({
   fileUrl,
@@ -29,22 +27,45 @@ export const storeDocEmbeddings = async ({
     const pageLevelDocs = await loader.load();
 
     const pinecone = await getPineconeClient();
-    const index = process.env.PINECONE_INDEX || "gpt-pdf-ai-index";
-    const pineconeIndex = pinecone.Index(index);
-    const embeddings = new OpenAIEmbeddings({
-      openAIApiKey: process.env.OPENAI_API_KEY!,
+    const indexName = process.env.PINECONE_INDEX || "gpt-pdf-ai-index";
+    const pineconeIndex = pinecone.Index(indexName);
+
+    // Extract text content from documents
+    const texts = pageLevelDocs.map((doc) => doc.pageContent);
+
+    // Generate embeddings using Pinecone's inference API
+    const model = "multilingual-e5-large";
+    const embeddingsResponse = await pinecone.inference.embed(model, texts, {
+      inputType: "passage",
+      truncate: "END",
     });
 
-    await PineconeStore.fromDocuments(pageLevelDocs, embeddings, {
-      pineconeIndex,
-      namespace: docId,
+    // Prepare vectors for upserting to Pinecone
+    const vectors = pageLevelDocs.map((doc, i) => {
+      const embedding = embeddingsResponse.data[i];
+      // Handle both dense and sparse embeddings
+      const values = "values" in embedding ? embedding.values : [];
+
+      return {
+        id: `${docId}-page-${i}`,
+        values: values,
+        metadata: {
+          text: doc.pageContent,
+          pageNumber: i + 1,
+          docId: docId,
+        },
+      };
     });
+
+    // Upsert vectors to Pinecone index
+    await pineconeIndex.namespace(docId).upsert(vectors);
 
     return {
       fileSize: blob.size,
       status: "SUCCESS",
     };
   } catch (err) {
+    console.log("🚀 ~ storeDocEmbeddings ~ err:", err);
     return {
       status: "ERROR",
       fileSize: 0,
@@ -59,23 +80,37 @@ export const queryDoc = async ({
   query: string;
   docId: string;
 }) => {
-  // Query vector databases to retrieven chunk with user's input question
+  // Query vector databases to retrieve chunk with user's input question
 
   try {
-    const embeddings = new OpenAIEmbeddings({
-      openAIApiKey: process.env.OPENAI_API_KEY,
-    });
     const pinecone = await getPineconeClient();
-    const index = process.env.PINECONE_INDEX || "gpt-pdf-ai-index";
-    const pineconeIndex = pinecone.Index(index);
+    const indexName = process.env.PINECONE_INDEX || "gpt-pdf-ai-index";
+    const pineconeIndex = pinecone.Index(indexName);
 
-    const vectorStore = await PineconeStore.fromExistingIndex(embeddings, {
-      pineconeIndex,
-      namespace: docId,
+    // Generate query embedding using Pinecone's inference API
+    const model = "multilingual-e5-large";
+    const queryEmbedding = await pinecone.inference.embed(model, [message], {
+      inputType: "query",
+      truncate: "END",
     });
 
-    const results = await vectorStore.similaritySearch(message, 4);
+    // Extract the embedding values
+    const embedding = queryEmbedding.data[0];
+    const queryVector = "values" in embedding ? embedding.values : [];
 
+    // Query the index
+    const queryResponse = await pineconeIndex.namespace(docId).query({
+      vector: queryVector,
+      topK: 4,
+      includeMetadata: true,
+    });
+
+    // Transform results to match expected format
+    const results =
+      queryResponse.matches?.map((match) => ({
+        pageContent: (match.metadata?.text as string) || "",
+        metadata: match.metadata || {},
+      })) || [];
 
     return results;
   } catch (err) {
@@ -109,7 +144,7 @@ export async function callChatgptApi(
   }[] = [{ role: "user", content: question }];
 
   const response = await openai.chat.completions.create({
-    model: "gpt-3.5-turbo",
+    model: "gpt-4.1-mini",
     max_tokens: 1024,
     temperature: 0.7,
     messages: messages,

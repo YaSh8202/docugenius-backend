@@ -6,7 +6,9 @@ const dbUrl = config.get<string>("dbUrl");
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(dbUrl);
+    await mongoose.connect(dbUrl,{
+      connectTimeoutMS: 10000,
+    });
     console.log("Database connected...");
   } catch (error: any) {
     console.log(error.message);
