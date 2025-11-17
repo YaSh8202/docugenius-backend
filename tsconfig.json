@@ -12,6 +12,6 @@
     "rootDir": "./",
     "outDir": "./build"
   },
-  "include": ["src/**/*", "config/**/*", "api/**/*"],
-  "exclude": ["node_modules", "build"]
+  "include": ["src/**/*", "config/**/*"],
+  "exclude": ["node_modules", "build", "api"]
 }
